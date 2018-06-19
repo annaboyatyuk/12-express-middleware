@@ -4,9 +4,10 @@ import storage from '../lib/storage/data-store.js';
 import uuid from 'uuid/v1';
 
 
-class Note{
+class Grapes{
 
   constructor(config) {
+    this.type = 'Grapes';
     this.id = uuid();
     this.createdOn = new Date();
     this.name = config && config.name || '';
@@ -26,8 +27,8 @@ class Note{
     return storage.get(id);
   }
 
-  static updateOne(criteria) {
-    return storage.update(this);
+  static updateOne(id, body) {
+    return storage.update(id, body);
   }
 
   static deleteOne(id) {
@@ -36,4 +37,4 @@ class Note{
 
 }
 
-export default Note;
+export default Grapes;
