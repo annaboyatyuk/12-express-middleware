@@ -2,6 +2,8 @@
 
 import { readFile, readdir, writeFile } from 'fs';
 
+import notFound from './../../middleware/404.js';
+
 const storage = {};
 
 const dataDirectory = `${__dirname}/../../../data`;
@@ -24,11 +26,16 @@ storage.getAll = () => {
         reject(err);
       }
       let promises = [];
+      if(!files) {
+        return notFound;
+                  
+      }
       while(files.length) {
         let file = files.shift();
         file = `${dataDirectory}/${file}`;
         if ( file.match(/\.json/) ) { promises.push( readFilePromise(file) ); }
       }
+   
       Promise.all(promises)
         .then(contents => {
           let database = contents.reduce( (db,data) => {
@@ -51,20 +58,42 @@ storage.get = (id) => {
         let obj = JSON.parse(data.toString());
         resolve(obj);
       }
-      else { reject(`${id} not found`); }
+      else {
+        console.log('jsoie;jfoe', err);
+        reject(`${id} Not Found`);
+      }
     });
   });
 };
 
 storage.save = (data) => {
   return new Promise( (resolve,reject) => {
-    if ( ! data.id ) { reject('No Record ID Specified'); }
+    if (!data.id) {
+      reject('No Record ID Specified');
+    }
 
     let file = `${dataDirectory}/${data.id}.json`;
     let text = JSON.stringify(data);
-    writeFile( file, text, (err) => {
+    writeFile(file, text, (err) => {
       if(err) { reject(err); }
       resolve(data);
+    });
+  });
+};
+
+storage.update = (id, body) => {
+  return new Promise((resolve, reject) => {
+    if(!body.id) {
+      reject('Not Found');
+    }
+    let file = `${dataDirectory}/${id}.json`;
+    let text = JSON.stringify(body);
+
+    writeFile(file, text, (err) => {
+      if(err) {
+        reject(err);
+      }
+      resolve(body);
     });
   });
 };

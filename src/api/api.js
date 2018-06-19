@@ -2,12 +2,16 @@
 
 
 import express from 'express';
-import Notes from '../models/notes.js';
+// import grapes from '../models/grapes.js';
+import notFound from './../middleware/404.js';
 
 const router = express.Router();
 
+import modelFinder from '../middleware/models.js';
+router.param('model', modelFinder);
 
-let sendJSON = (res,data) => {
+
+let sendJSON = (res, data) => {
   res.statusCode = 200;
   res.statusMessage = 'OK';
   res.setHeader('Content-Type', 'application/json');
@@ -15,55 +19,59 @@ let sendJSON = (res,data) => {
   res.end();
 };
 
-
-router.get('/api/v1/notes', (req,res) => {
-  Notes.fetchAll()
-    .then( data => sendJSON(res,data) )
-    .catch(() => {
-      res.statusCode = 404;
-      res.statusMessage = 'Not Found';
-      res.write('Not Found');
-      res.end();
-    });
+router.get('/', (req, res) => {
+  res.write('GOOOD MORNING!!!!!!');
+  res.end();
 });
 
-router.get('/api/v1/notes/:id', (req, res) => {
+
+router.get('/api/v1/:model', (req, res, next) => {
+  req.model.fetchAll()
+    .then(data => sendJSON(res, data) )
+    .catch(next);
+});
+
+router.get('/api/v1/:model/:id', (req, res, next) => {
   if(req.params.id) {
-    Notes.findOne(req.params.id)
-      .then(data => sendJSON(res,data) )
-      .catch(() => {
-        res.statusCode = 404;
-        res.statusMessage = 'Not Found';
-        res.write('Not Found');
-        res.end();
-      });
+    req.model.findOne(req.params.id)
+      .then(data => sendJSON(res, data))
+      .catch(next);
   }
   else {
-    res.statusCode = 404;
-    res.statusMessage = 'Not Found';
-    res.write('Not Found');
-    res.end();
+    return notFound;
   }
 });
 
-router.delete('/api/v1/notes', (req,res) => {
-  if ( req.params.id ) {
-    Notes.deleteOne(req.params.id)
+router.delete('/api/v1/:model/:id', (req, res, next) => {
+  if (req.params.id) {
+    req.model.deleteOne(req.params.id)
       .then(() => {
         res.statusCode = 204;
         res.end();
       })
-      .catch(console.error);
+      .catch(next);
   }
 });
 
-router.post('/api/v1/notes', (req,res) => {
+router.post('/api/v1/:model', (req, res, next) => {
 
-  let record = new Notes(req.body);
+  let record = new req.model(req.body);
   record.save()
-    .then(data => sendJSON(res,data))
-    .catch(console.error);
+    .then(data => sendJSON(res, data))
+    .catch(next);
 
+});
+
+
+router.put('/api/v1/:model/:id', (req, res, next) => {
+  if(Object.keys(req.body).length) {
+    req.model.updateOne(req.params.id, req.body)
+      .then(data => sendJSON(res, data))
+      .catch(next);
+  }
+  else {
+    return notFound;
+  }
 });
 
 

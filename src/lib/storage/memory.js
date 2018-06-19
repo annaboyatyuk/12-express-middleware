@@ -15,7 +15,7 @@ storage.get = (id) => {
       resolve(database[id]);
     }
     else {
-      reject(`${id} not found`);
+      reject(`${id} Not Found`);
     }
   });
 };
@@ -40,11 +40,24 @@ storage.delete = (id) => {
     }
     else {
       console.log('this is being rejected');
-      reject(`${id} not found`);
+      reject(`${id} Not Found`);
     }
   });
 };
 
+
+storage.update = (id, body) => {
+  return new Promise((resolve, reject) => {
+    if(database[id]) {
+      database[id] = body;
+      database[id].id = id;
+      resolve(database[id]);
+    }
+    else {
+      reject('Not Found');
+    }
+  });
+};
 
 export default storage;
 
